@@ -74,7 +74,8 @@ def main():
     #     num_workers=cpu_workers,
     #     collate_fn=synth90k_collate_fn)
 
-    num_class = len(Synth90kDataset.LABEL2CHAR) + 1
+    # num_class = len(Synth90kDataset.LABEL2CHAR) + 1
+    num_class = len(KalapaDataset.LABEL2CHAR) + 1
     crnn = CRNN(1, img_height, img_width, num_class,
                 map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],

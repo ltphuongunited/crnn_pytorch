@@ -44,7 +44,7 @@ class KalapaDataset(Dataset):
         return paths, texts
 
     def __len__(self):
-        return len(self.texts)
+        return len(self.paths)
 
     def __getitem__(self, index):
         path = self.paths[index]

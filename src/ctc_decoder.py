@@ -62,6 +62,7 @@ def beam_search_decode(emission_log_prob, blank=0, **kwargs):
     labels_beams = [(list(labels), accu_log_prob)
                     for labels, accu_log_prob in total_accu_log_prob.items()]
     labels_beams.sort(key=lambda x: x[1], reverse=True)
+    # print(labels_beams)
     labels = labels_beams[0][0]
 
     return labels

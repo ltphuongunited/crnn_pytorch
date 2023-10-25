@@ -13,10 +13,11 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 
 from config import common_config as config
-from dataset import Synth90kDataset, synth90k_collate_fn
+from dataset import Synth90kDataset, synth90k_collate_fn, KalapaDataset
 from model import CRNN
 from ctc_decoder import ctc_decode
-
+import os
+import csv
 
 def predict(crnn, dataloader, label2char, decode_method, beam_size):
     crnn.eval()
@@ -52,7 +53,7 @@ def show_result(paths, preds):
 def main():
     arguments = docopt(__doc__)
 
-    images = arguments['IMAGE']
+    # images = arguments['IMAGE']
     reload_checkpoint = arguments['-m']
     batch_size = int(arguments['-s'])
     decode_method = arguments['-d']
@@ -63,16 +64,28 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'device: {device}')
+    
+    root_folder = 'OCR/public_test/images'
+    folders = sorted(os.listdir(root_folder), key=lambda x: int(x))
+    
+    images = []
+    for folder in folders:
+        folder = os.path.join(root_folder, folder)
+        sorted_files = sorted(os.listdir(folder), key=lambda x: int(x.split('.')[0]))
+        images += [os.path.join(folder, file) for file in sorted_files]
 
-    predict_dataset = Synth90kDataset(paths=images,
+    # predict_dataset = Synth90kDataset(paths=images,
+                                    #   img_height=img_height, img_width=img_width)
+    predict_dataset = KalapaDataset(paths=images,
                                       img_height=img_height, img_width=img_width)
-
     predict_loader = DataLoader(
         dataset=predict_dataset,
         batch_size=batch_size,
         shuffle=False)
 
-    num_class = len(Synth90kDataset.LABEL2CHAR) + 1
+    # num_class = len(Synth90kDataset.LABEL2CHAR) + 1
+    num_class = len(KalapaDataset.LABEL2CHAR) + 1
+    
     crnn = CRNN(1, img_height, img_width, num_class,
                 map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],
@@ -80,11 +93,30 @@ def main():
     crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
     crnn.to(device)
 
-    preds = predict(crnn, predict_loader, Synth90kDataset.LABEL2CHAR,
+    # preds = predict(crnn, predict_loader, Synth90kDataset.LABEL2CHAR,
+    #                 decode_method=decode_method,
+    #                 beam_size=beam_size)
+
+    preds = predict(crnn, predict_loader, KalapaDataset.LABEL2CHAR,
                     decode_method=decode_method,
                     beam_size=beam_size)
 
-    show_result(images, preds)
+    contents = [image.split("OCR/public_test/images/")[-1] for image in images]
+    show_result(contents, preds)
+
+    preds = [''.join(pred) for pred in preds]
+   
+
+    data = [['id', 'answer']]
+    data.extend(zip(contents, preds))
+
+    filename = 'sample_submission.csv'
+
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
+
+    print(f"File '{filename}' đã được tạo thành công.")
 
 
 if __name__ == '__main__':

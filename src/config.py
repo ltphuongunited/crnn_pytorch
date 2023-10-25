@@ -1,7 +1,9 @@
 
 common_config = {
     'data_dir': 'OCR/training_data',
-    'img_width': 100,
+    # 'img_width': 100,
+    # 'img_height': 32,
+    'img_width': 512,
     'img_height': 32,
     'map_to_seq_hidden': 64,
     'rnn_hidden': 256,
@@ -10,13 +12,15 @@ common_config = {
 
 train_config = {
     'epochs': 10000,
-    'train_batch_size': 2048,
+    'train_batch_size': 256,
     'eval_batch_size': 512,
     'lr': 0.0001,
     'show_interval': 10,
     'valid_interval': 500,
     'save_interval': 2000,
-    'cpu_workers': 4,
+    # 'valid_interval': 5,
+    # 'save_interval': 5,
+    'cpu_workers': 16,
     'reload_checkpoint': None,
     'valid_max_iter': 100,
     'decode_method': 'greedy',
@@ -27,7 +31,7 @@ train_config.update(common_config)
 
 evaluate_config = {
     'eval_batch_size': 512,
-    'cpu_workers': 4,
+    'cpu_workers': 16,
     'reload_checkpoint': 'checkpoints/crnn.pt',
     'decode_method': 'beam_search',
     'beam_size': 10,
