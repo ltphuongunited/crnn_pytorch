@@ -11,7 +11,7 @@ import numpy as np
 
 class KalapaDataset(Dataset):
     # CHARS = 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ '
-    CHARS = 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ0123456789(),-./:;_ '
+    CHARS = 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ0123456789\'(),-./:;_ '
     CHAR2LABEL = {char: i + 1 for i, char in enumerate(CHARS)}
     LABEL2CHAR = {label: char for char, label in CHAR2LABEL.items()}
 
@@ -154,23 +154,6 @@ def synth90k_collate_fn(batch):
     return images, targets, target_lengths
 
 
-def _load_from_raw_files(root_dir, mode):
-    paths = []
-    texts = []
-    annotation_dir = os.path.join(root_dir, 'annotations')
-    file_names = sorted(os.listdir(annotation_dir))
-    
-    for file_name in file_names:
-        file_path = os.path.join(annotation_dir, file_name)
-    
-        with open(os.path.join(file_path), 'r') as fr:
-            for line in fr.readlines():
-                path, text = line.strip().split('\t')
-                path = os.path.join(root_dir, 'images', path)
-                paths.append(path)
-                texts.append(text)
-                
-    return paths, texts
 
 # if __name__ == "__main___":
 # print('Jello')

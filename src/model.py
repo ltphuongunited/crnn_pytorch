@@ -10,7 +10,7 @@ class CRNN(nn.Module):
         # self.cnn, (output_channel, output_height, output_width) = \
         #     self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
     
-        self.cnn = convnextv2_femto(pretrained=True)
+        self.cnn = convnextv2_femto(pretrained=False)
         output_channel, output_height, output_width = 384, img_height//32, img_width//32
 
         self.map_to_seq = nn.Linear(output_channel * output_height, map_to_seq_hidden)
@@ -92,7 +92,7 @@ class CRNN(nn.Module):
         return output  # shape: (seq_len, batch, num_class)
 
 
-# x = torch.Tensor(2,1 ,32, 512)
+# x = torch.Tensor(2,1,32, 512)
 
 # model = CRNN()
 

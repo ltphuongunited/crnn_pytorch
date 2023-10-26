@@ -120,7 +120,7 @@ def main():
                 map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],
                 leaky_relu=config['leaky_relu'])
-    reload_checkpoint = 'checkpoints/crnn_044000_convnextv2_loss0.0.pt'
+    reload_checkpoint = 'checkpoints/crnn_100000_convnextv2_loss0.0.pt'
     crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
     crnn.to(device)
 

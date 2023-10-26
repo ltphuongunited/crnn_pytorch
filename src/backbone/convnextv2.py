@@ -128,9 +128,10 @@ def convnextv2_atto(pretrained=False,num_classes=1000, **kwargs):
     return model
 
 def convnextv2_femto(pretrained=False, num_classes=1000, **kwargs):
-    model = ConvNeXtV2(depths=[2, 2, 6, 2], dims=[48, 96, 192, 384], **kwargs)
+    model = ConvNeXtV2(in_chans=1, depths=[2, 2, 6, 2], dims=[48, 96, 192, 384], **kwargs)
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(url=model_urls['femto'], map_location="cpu")
+        checkpoint["model"]["downsample_layers.0.0.weight"] = F.pad(checkpoint["model"]["downsample_layers.0.0.weight"], (0, 2))
         model.load_state_dict(checkpoint["model"], strict=False)
     return model
 
