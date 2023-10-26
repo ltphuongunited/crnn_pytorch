@@ -3,16 +3,17 @@ common_config = {
     'data_dir': 'OCR/training_data',
     # 'img_width': 100,
     # 'img_height': 32,
-    'img_width': 512,
-    'img_height': 32,
-    'map_to_seq_hidden': 64,
+    'img_width': 1024,
+    'img_height': 64,
+    # 'map_to_seq_hidden': 64,
+    'map_to_seq_hidden': 256,
     'rnn_hidden': 256,
     'leaky_relu': False,
 }
 
 train_config = {
     'epochs': 10000,
-    'train_batch_size': 256,
+    'train_batch_size': 128,
     'eval_batch_size': 512,
     'lr': 0.0001,
     'show_interval': 10,

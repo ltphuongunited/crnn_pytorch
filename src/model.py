@@ -1,14 +1,17 @@
 import torch.nn as nn
-
+from backbone.convnextv2 import *
 
 class CRNN(nn.Module):
 
-    def __init__(self, img_channel, img_height, img_width, num_class,
+    def __init__(self, img_channel=3, img_height=32, img_width=512, num_class=20,
                  map_to_seq_hidden=64, rnn_hidden=256, leaky_relu=False):
         super(CRNN, self).__init__()
 
-        self.cnn, (output_channel, output_height, output_width) = \
-            self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
+        # self.cnn, (output_channel, output_height, output_width) = \
+        #     self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
+    
+        self.cnn = convnextv2_femto(pretrained=True)
+        output_channel, output_height, output_width = 384, img_height//32, img_width//32
 
         self.map_to_seq = nn.Linear(output_channel * output_height, map_to_seq_hidden)
 
@@ -78,7 +81,6 @@ class CRNN(nn.Module):
 
         conv = self.cnn(images)
         batch, channel, height, width = conv.size()
-
         conv = conv.view(batch, channel * height, width)
         conv = conv.permute(2, 0, 1)  # (width, batch, feature)
         seq = self.map_to_seq(conv)
@@ -88,3 +90,13 @@ class CRNN(nn.Module):
 
         output = self.dense(recurrent)
         return output  # shape: (seq_len, batch, num_class)
+
+
+# x = torch.Tensor(2,1 ,32, 512)
+
+# model = CRNN()
+
+# out = model(x)
+# print(out.shape)
+# from torchsummary import summary
+# summary(model, (3,32, 512))
