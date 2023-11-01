@@ -56,6 +56,7 @@ def main():
     # images = arguments['IMAGE']
     reload_checkpoint = arguments['-m']
     batch_size = int(arguments['-s'])
+    batch_size = 32
     decode_method = arguments['-d']
     beam_size = int(arguments['-b'])
 
@@ -90,6 +91,7 @@ def main():
                 map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],
                 leaky_relu=config['leaky_relu'])
+    # reload_checkpoint = 'checkpoints/crnn_convnextv2_new_004000_loss0.5553109953138563.pt'
     crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
     crnn.to(device)
 

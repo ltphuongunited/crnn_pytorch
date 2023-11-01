@@ -3,22 +3,27 @@ from backbone.convnextv2 import *
 
 class CRNN(nn.Module):
 
-    def __init__(self, img_channel=3, img_height=32, img_width=512, num_class=20,
+    def __init__(self, img_channel=3, img_height=64, img_width=1024, num_class=20,
                  map_to_seq_hidden=64, rnn_hidden=256, leaky_relu=False):
         super(CRNN, self).__init__()
 
-        # self.cnn, (output_channel, output_height, output_width) = \
-        #     self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
+        self.cnn, (output_channel, output_height, output_width) = \
+            self._cnn_backbone(img_channel, img_height, img_width, leaky_relu)
     
-        self.cnn = convnextv2_femto(pretrained=False)
-        output_channel, output_height, output_width = 384, img_height//32, img_width//32
+        # self.cnn = convnextv2_femto(pretrained=True)
+        # output_channel, output_height, output_width = 384, img_height//32, img_width//32
 
         self.map_to_seq = nn.Linear(output_channel * output_height, map_to_seq_hidden)
 
+
+        # self.attention = nn.MultiheadAttention(embed_dim=map_to_seq_hidden, num_heads=8)
+
+        # self.dense = nn.Linear(map_to_seq_hidden, num_class)
+
         self.rnn1 = nn.LSTM(map_to_seq_hidden, rnn_hidden, bidirectional=True)
         self.rnn2 = nn.LSTM(2 * rnn_hidden, rnn_hidden, bidirectional=True)
-
         self.dense = nn.Linear(2 * rnn_hidden, num_class)
+        
 
     def _cnn_backbone(self, img_channel, img_height, img_width, leaky_relu):
         assert img_height % 16 == 0
@@ -84,15 +89,22 @@ class CRNN(nn.Module):
         conv = conv.view(batch, channel * height, width)
         conv = conv.permute(2, 0, 1)  # (width, batch, feature)
         seq = self.map_to_seq(conv)
+        
+        
+        # seq = seq.permute(1, 0, 2)  # (batch, width, feature)
+        # attn_output, _ = self.attention(seq, seq, seq)  # (batch, width, feature)
+        # attn_output = attn_output.permute(1, 0, 2)  # (width, batch, feature)
+        # output = self.dense(attn_output)
 
         recurrent, _ = self.rnn1(seq)
         recurrent, _ = self.rnn2(recurrent)
-
         output = self.dense(recurrent)
+
+        
         return output  # shape: (seq_len, batch, num_class)
 
 
-# x = torch.Tensor(2,1,32, 512)
+# x = torch.Tensor(2,1,64, 1024)
 
 # model = CRNN()
 

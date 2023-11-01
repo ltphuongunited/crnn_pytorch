@@ -10,6 +10,8 @@ from dataset import Synth90kDataset, synth90k_collate_fn, KalapaDataset
 from model import CRNN
 from evaluate import evaluate
 from config import train_config as config
+from torchvision import transforms
+
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -47,6 +49,7 @@ def main():
     save_interval = config['save_interval']
     cpu_workers = config['cpu_workers']
     reload_checkpoint = config['reload_checkpoint']
+    reload_checkpoint = 'crnn.pt'
     valid_max_iter = config['valid_max_iter']
 
     img_width = config['img_width']
@@ -60,8 +63,18 @@ def main():
     #                                 img_height=img_height, img_width=img_width)
     # valid_dataset = Synth90kDataset(root_dir=data_dir, mode='dev',
     #                                 img_height=img_height, img_width=img_width)
+    
+
+    # Định nghĩa pipeline biến đổi
+    transform = transforms.Compose([
+        transforms.RandomRotation(10),
+        transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+    ])
+
+    # Tạo dataset với pipeline biến đổi
     train_dataset = KalapaDataset(root_dir=data_dir, mode='train',
-                                    img_height=img_height, img_width=img_width)
+                                img_height=img_height, img_width=img_width,
+                                transform=transform)
 
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -78,11 +91,16 @@ def main():
 
     # num_class = len(Synth90kDataset.LABEL2CHAR) + 1
     num_class = len(KalapaDataset.LABEL2CHAR) + 1
+    # crnn = CRNN(1, img_height, img_width, num_class,
+    #             map_to_seq_hidden=config['map_to_seq_hidden'],
+    #             rnn_hidden=config['rnn_hidden'],
+    #             leaky_relu=config['leaky_relu'])
     crnn = CRNN(1, img_height, img_width, num_class,
                 map_to_seq_hidden=config['map_to_seq_hidden'],
                 rnn_hidden=config['rnn_hidden'],
                 leaky_relu=config['leaky_relu'])
     if reload_checkpoint:
+        print('Load pretrained')
         crnn.load_state_dict(torch.load(reload_checkpoint, map_location=device))
     crnn.to(device)
 
@@ -106,19 +124,32 @@ def main():
             if i % show_interval == 0:
                 print('train_batch_loss[', i, ']: ', loss / train_size)
 
-            if i % valid_interval == 0:
+            # if i % valid_interval == 0:
+            #     evaluation = evaluate(crnn, train_loader, criterion,
+            #                           decode_method=config['decode_method'],
+            #                           beam_size=config['beam_size'])
+            #     print('valid_evaluation: loss={loss}, acc={acc}, edit_distane={distance}'.format(**evaluation))
+
+            #     if i % save_interval == 0:
+            #         prefix = 'crnn'
+            #         loss = evaluation['loss']
+            #         save_model_path = os.path.join(config['checkpoints_dir'],
+            #                                        f'{prefix}_vgg_augment_{i:06}_loss{loss}.pt')
+            #         torch.save(crnn.state_dict(), save_model_path)
+            #         print('save model at ', save_model_path)
+            if i % save_interval == 0:
                 evaluation = evaluate(crnn, train_loader, criterion,
                                       decode_method=config['decode_method'],
                                       beam_size=config['beam_size'])
                 print('valid_evaluation: loss={loss}, acc={acc}, edit_distane={distance}'.format(**evaluation))
 
-                if i % save_interval == 0:
-                    prefix = 'crnn'
-                    loss = evaluation['loss']
-                    save_model_path = os.path.join(config['checkpoints_dir'],
-                                                   f'{prefix}_convnextv2_new_{i:06}_loss{loss}.pt')
-                    torch.save(crnn.state_dict(), save_model_path)
-                    print('save model at ', save_model_path)
+                
+                prefix = 'crnn'
+                loss = evaluation['loss']
+                save_model_path = os.path.join(config['checkpoints_dir'],
+                                                f'{prefix}_vgg_augment_{i:06}_loss{loss}.pt')
+                torch.save(crnn.state_dict(), save_model_path)
+                print('save model at ', save_model_path)
 
             i += 1
 
